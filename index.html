@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExpenseViz — Budget Tracker</title>
+  <link rel="stylesheet" href="css/Style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- THEME TOGGLE (floating) -->
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+    <span id="themeIcon">☀️</span>
+  </button>
+
+  <div class="page">
+
+    <!-- BRAND HEADER -->
+    <header class="page-header">
+      <span class="brand-name">ExpenseViz</span>
+    </header>
+
+    <!-- GREETING BANNER -->
+    <section class="greeting-panel" id="greetingPanel" style="display:none">
+      <div class="greeting-display">
+        <p class="greeting-text" id="greetingText"></p>
+        <button class="greeting-edit-btn" id="greetingEditBtn" title="Ubah nama">✎</button>
+      </div>
+    </section>
+
+<!-- BALANCE + SPENDING LIMIT -->
+    <div class="two-col-row">
+
+      <!-- BALANCE -->
+      <section class="panel balance-panel">
+        <p class="balance-label">Total Balance</p>
+        <p class="balance-amount" id="totalBalance">Rp 0</p>
+        <p class="balance-sub" id="txCount">0 transactions</p>
+      </section>
+
+      <!-- SPENDING LIMIT -->
+      <section class="panel limit-panel">
+        <div class="limit-header">
+          <span class="limit-label">Spending Limit</span>
+          <button class="limit-edit-btn" id="limitEditBtn">Edit</button>
+        </div>
+        <div class="limit-input-row" id="limitInputRow" style="display:none">
+          <input type="number" id="limitInput" placeholder="e.g. 500000" min="1" />
+          <button class="btn btn-accent btn-sm" id="limitSaveBtn">Save</button>
+        </div>
+        <div class="limit-bar-wrap">
+          <div class="limit-bar" id="limitBar"></div>
+        </div>
+        <p class="limit-info" id="limitInfo">No limit set</p>
+      </section>
+
+    </div>
+
+    <!-- ADD FORM -->
+    <section class="panel form-panel">
+      <p class="panel-title">Add Transaction</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="itemName">Item Name</label>
+          <input type="text" id="itemName" placeholder="e.g. Nasi goreng" maxlength="60" />
+          <span class="field-error" id="errName"></span>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount (Rp)</label>
+          <input type="number" id="amount" placeholder="e.g. 25000" min="1" />
+          <span class="field-error" id="errAmount"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <div class="select-wrap">
+            <select id="category">
+              <option value="">-- Select --</option>
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Fun">Fun</option>
+            </select>
+          </div>
+          <span class="field-error" id="errCategory"></span>
+        </div>
+        <div class="form-group">
+          <label for="newCatInput">New Category</label>
+          <div class="custom-cat-row">
+            <input type="text" id="newCatInput" placeholder="e.g. Health" maxlength="30" />
+            <button class="btn btn-outline btn-sm" id="addCatBtn">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-accent btn-full" id="addTxBtn">
+        + Add Transaction
+      </button>
+    </section>
+
+    <!-- MONTHLY SUMMARY -->
+    <section class="panel summary-panel" id="summaryPanel">
+      <p class="panel-title">Monthly Summary</p>
+      <div class="summary-grid" id="summaryGrid">
+        <div class="summary-empty">No data yet.</div>
+      </div>
+    </section>
+
+    <!-- TWO COLUMN ROW: TRANSACTIONS + CHART -->
+    <div class="two-col-row">
+
+      <!-- TRANSACTION LIST -->
+      <section class="panel list-panel">
+        <div class="list-head">
+          <p class="panel-title">Transactions</p>
+          <div class="sort-row">
+            <span class="sort-label">Sort</span>
+            <select class="sort-select" id="sortSelect">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="amount-desc">Amount ↓</option>
+              <option value="amount-asc">Amount ↑</option>
+              <option value="category">Category</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tx-list" id="txList">
+          <div class="empty-state" id="emptyState">
+            <p>No transactions yet</p>
+            <small>Add your first expense above</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- PIE CHART -->
+      <section class="panel chart-panel">
+        <p class="panel-title">Spending by Category</p>
+        <div class="chart-wrap">
+          <canvas id="spendingChart"></canvas>
+            <div class="chart-empty" id="chartEmpty">
+              <p>No data yet</p>
+              <small>Add transactions to see chart</small>
+            </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <h2>Delete Transaction?</h2>
+      <p id="modalDesc">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn-danger" id="modalConfirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WELCOME MODAL -->
+  <div class="modal-overlay welcome-overlay" id="welcomeOverlay">
+    <div class="modal-box welcome-box">
+      <h2 class="welcome-title">Welcome to<br>ExpenseViz</h2>
+      <p class="welcome-sub">Let's set up your budget — what's your name?</p>
+      <input type="text" id="welcomeNameInput" class="welcome-input" placeholder="Enter your name..." maxlength="30" />
+      <button class="btn btn-accent btn-full welcome-btn" id="welcomeGoBtn">Start Tracking</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/App.js"></script>
+</body>
+</html>
